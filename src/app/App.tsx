@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { TeamMembers } from './components/TeamMembers';
 import { Offices } from './components/Offices';
@@ -25,6 +25,7 @@ import { AnimatePresence } from './components/ui/animated-container';
 import { LoadingOverlay } from './components/ui/loading';
 import { ConfirmationDialog } from './components/ui/confirmation-dialog';
 import { NotificationToast } from './components/ui/notification-toast';
+import { memberService } from '../api/client';
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -72,7 +73,27 @@ function App() {
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
 
   // Application state
-  const [members, setMembers] = useLocalStorage<TeamMember[]>('app_members', initialMembers);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+
+  // Real Database Fetching Effect
+  useEffect(() => {
+    const loadRealData = async () => {
+      try {
+        console.log("Fetching members from Render PostgreSQL API...");
+        const apiMembers = await memberService.getAll();
+        // Si la BD devuelve vacio, tal vez cargamos los initialMembers por ahora de relleno
+        if (apiMembers && apiMembers.length > 0) {
+          setMembers(apiMembers);
+        } else {
+          setMembers(initialMembers); // Fallback demo
+        }
+      } catch (error) {
+        console.error("No se pudo conectar a la base de datos", error);
+        setMembers(initialMembers); // Fallback si falla
+      }
+    };
+    loadRealData();
+  }, []);
   const [offices, setOffices] = useLocalStorage<Office[]>('app_offices', initialOffices);
   const [teams, setTeams] = useLocalStorage<ScrumTeam[]>('app_teams', []);
   const [schedules, setSchedules] = useLocalStorage<Schedule[]>('app_schedules', []);
