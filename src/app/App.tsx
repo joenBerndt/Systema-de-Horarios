@@ -262,7 +262,7 @@ function App() {
     }
   };
 
-  const handleDeleteMember = (id: string) => {
+  const handleDeleteMember = async (id: string) => {
     const member = members.find(m => m.id === id);
     setMembers(members.filter(m => m.id !== id));
 
@@ -280,6 +280,13 @@ function App() {
       ...project,
       assignedMembers: project.assignedMembers.filter(memberId => memberId !== id)
     })));
+
+    // Call database API to delete member
+    try {
+      await memberService.delete(id);
+    } catch (error) {
+      console.error("Error al eliminar miembro en BD:", error);
+    }
   };
 
   // Office handlers

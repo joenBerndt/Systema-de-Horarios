@@ -67,13 +67,26 @@ app.get('/api/miembros', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM members ORDER BY created_at DESC');
 
-        // Desencriptamos datos muy sensibles al enviar al panel de admin
-        const decryptedRows = rows.map((row: any) => ({
-            ...row,
-            emergencyContact: decryptData(row.emergency_contact)
+        // Desencriptamos datos y mapeamos de snake_case a camelCase para React
+        const mappedRows = rows.map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            role: row.role,
+            employmentType: row.employment_type,
+            phone: decryptData(row.phone_encrypted),
+            emergencyContact: decryptData(row.emergency_contact_encrypted),
+            githubEmail: row.github_email,
+            githubUsername: row.github_username,
+            birthDate: row.birth_date,
+            address: row.address,
+            city: row.city,
+            officeId: row.office_id,
+            hasAccess: true, // Default for now
+            joinDate: row.created_at
         }));
 
-        res.json(decryptedRows);
+        res.json(mappedRows);
     } catch (err) {
         console.error(err);
         // Para prueba sin Base de Datos:
@@ -97,19 +110,30 @@ app.post('/api/miembros', async (req, res) => {
         const query = `
       INSERT INTO members (
         id, name, email, password_hash, role, employment_type, 
-        phone_encrypted, emergency_contact_encrypted, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        phone_encrypted, emergency_contact_encrypted,
+        github_email, github_username, birth_date, address, city, office_id, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
       RETURNING id, name, email;
     `;
 
         const values = [
             data.id || crypto.randomUUID(), data.name, data.email,
-            hashedPassword, data.role, data.employmentType,
-            encryptedPhone, encryptedEmergencyContact
+            hashedPassword, data.role || 'User', data.employmentType || 'Empleado Full-time',
+            encryptedPhone, encryptedEmergencyContact,
+            data.githubEmail, data.githubUsername, data.birthDate, data.address, data.city, data.officeId
         ];
 
         const { rows } = await pool.query(query, values);
-        res.status(201).json({ message: "Miembro asegurado y creado", member: rows[0] });
+
+        // Return mapped row
+        res.status(201).json({
+            message: "Miembro asegurado y creado",
+            member: {
+                id: rows[0].id,
+                name: rows[0].name,
+                email: rows[0].email
+            }
+        });
 
     } catch (err: any) {
         if (err.code === '23505') return res.status(409).json({ error: 'El email ya existe' });
@@ -127,7 +151,7 @@ app.put('/api/miembros/:id', async (req, res) => {
 app.delete('/api/miembros/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM members WHERE id = $1', [req.params.id]);
-        res.json({ message: "Miembro eliminado" });
+        res.json({ message: "Miembro eliminado", success: true });
     } catch (err) {
         res.status(500).json({ error: 'Error del servidor' });
     }
