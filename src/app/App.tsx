@@ -53,8 +53,8 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
 
 function App() {
   // Authentication state
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
+  const [currentUser, setCurrentUser] = useLocalStorage<User | null>('app_currentUser', null);
+  const [currentMember, setCurrentMember] = useLocalStorage<TeamMember | null>('app_currentMember', null);
   const [users, setUsers] = useLocalStorage<User[]>('app_users', initialUsers);
   const [showRegister, setShowRegister] = useState(false);
 
@@ -117,19 +117,27 @@ function App() {
     setLoginNotification({ show: true, name: member.name, type: 'member' });
   };
 
-  const handleRegister = (memberData: Omit<TeamMember, 'id'>) => {
+  const handleRegister = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
       id: `member-${Date.now()}`
     };
+
+    // Guardar optimísticamente en UI
     setMembers([...members, newMember]);
+    setShowRegister(false);
+    setRegisterNotification(true);
 
     if (newMember.officeId) {
       updateOfficeOccupancy(newMember.officeId, 1);
     }
 
-    setShowRegister(false);
-    setRegisterNotification(true);
+    // Enviar a la base de datos real (Supabase/Render API)
+    try {
+      await memberService.create(newMember);
+    } catch (error) {
+      console.error("Error al registrar en la base de datos:", error);
+    }
   };
 
   const handleGoogleLogin = (data: { email: string; name: string; picture?: string }) => {
@@ -170,20 +178,26 @@ function App() {
     setCurrentMember(tempMember);
   };
 
-  const handleCompleteProfile = (memberData: Omit<TeamMember, 'id'>) => {
+  const handleCompleteProfile = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
       id: `member-${Date.now()}`
     };
+
     setMembers([...members, newMember]);
+    setShowCompleteProfile(false);
+    setGoogleData(null);
+    handleMemberLogin(newMember);
 
     if (newMember.officeId) {
       updateOfficeOccupancy(newMember.officeId, 1);
     }
 
-    setShowCompleteProfile(false);
-    setGoogleData(null);
-    handleMemberLogin(newMember);
+    try {
+      await memberService.create(newMember);
+    } catch (error) {
+      console.error("Error al completar perfil en BD:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -216,7 +230,7 @@ function App() {
   };
 
   // Member handlers
-  const handleAddMember = (memberData: Omit<TeamMember, 'id'>) => {
+  const handleAddMember = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
       id: `member-${Date.now()}`
@@ -225,6 +239,12 @@ function App() {
 
     if (newMember.officeId) {
       updateOfficeOccupancy(newMember.officeId, 1);
+    }
+
+    try {
+      await memberService.create(newMember);
+    } catch (error) {
+      console.error("Error al añadir miembro a BD:", error);
     }
   };
 
