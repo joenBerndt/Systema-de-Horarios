@@ -120,7 +120,7 @@ function App() {
   const handleRegister = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
-      id: `member-${Date.now()}`
+      id: crypto.randomUUID()
     };
 
     // Guardar optimísticamente en UI
@@ -159,7 +159,7 @@ function App() {
     setShowCompleteProfile(true);
     // Temporary login to show the dashboard behind the modal
     const tempMember: TeamMember = {
-      id: `member-temp-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: data.name,
       email: data.email,
       role: 'Frontend Developer',
@@ -181,7 +181,7 @@ function App() {
   const handleCompleteProfile = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
-      id: `member-${Date.now()}`
+      id: crypto.randomUUID()
     };
 
     setMembers([...members, newMember]);
@@ -233,7 +233,7 @@ function App() {
   const handleAddMember = async (memberData: Omit<TeamMember, 'id'>) => {
     const newMember: TeamMember = {
       ...memberData,
-      id: `member-${Date.now()}`
+      id: crypto.randomUUID()
     };
     setMembers([...members, newMember]);
 
