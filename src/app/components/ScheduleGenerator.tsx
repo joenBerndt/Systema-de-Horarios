@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Calendar, Download, RefreshCw, Clock, AlertCircle, Home, Building, Bell, UserX } from "lucide-react";
+import { Calendar, Download, RefreshCw, AlertCircle, Home, Building, Bell, UserX } from "lucide-react";
 import { TeamMember, Office, Schedule, MemberAvailability, DayOfWeek } from "../types";
 import { Badge } from "./ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
@@ -31,27 +31,11 @@ export function ScheduleGenerator({ members: allMembers, offices, schedules, mem
   const [selectedWeeks, setSelectedWeeks] = useState<number>(1);
   const [selectedOffice, setSelectedOffice] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'shifts'>('shifts');
-  const [rotationMode, setRotationMode] = useState<'automatic' | 'manual'>('automatic');
 
   // Función para obtener el día de la semana de una fecha
   const getDayOfWeek = (date: Date): DayOfWeek => {
     const days: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return days[date.getDay()];
-  };
-
-  // Función para obtener los rangos horarios disponibles de un miembro en una fecha
-  const getMemberAvailableTimeRanges = (memberId: string, date: Date) => {
-    const availability = memberAvailabilities.find(a => a.memberId === memberId);
-
-    if (!availability) return [];
-
-    const dayOfWeek = getDayOfWeek(date);
-    const dayAvailability = availability.availability.find(d => d.day === dayOfWeek);
-
-    if (!dayAvailability || !dayAvailability.isAvailable) return [];
-
-    // Filtrar solo rangos con estado "available"
-    return dayAvailability.timeRanges.filter(range => range.status === 'available');
   };
 
   // Función para verificar si un miembro está disponible en una fecha y hora
@@ -98,66 +82,7 @@ export function ScheduleGenerator({ members: allMembers, offices, schedules, mem
     });
   };
 
-  // Obtener análisis detallado de disponibilidad
-  const getAvailabilityAnalysis = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
 
-    const analysis: {
-      member: TeamMember;
-      hasAvailability: boolean;
-      availableDays: number;
-      totalDaysChecked: number;
-      canWork: boolean;
-      unavailableDays: string[];
-    }[] = [];
-
-    members.forEach(member => {
-      if (!member.officeId) return;
-
-      const availability = memberAvailabilities.find(a => a.memberId === member.id);
-
-      if (!availability) {
-        analysis.push({
-          member,
-          hasAvailability: false,
-          availableDays: 0,
-          totalDaysChecked: 5,
-          canWork: false,
-          unavailableDays: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-        });
-        return;
-      }
-
-      let availableDays = 0;
-      const unavailableDays: string[] = [];
-      const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-
-      for (let day = 0; day < 5; day++) {
-        const currentDate = new Date(monday);
-        currentDate.setDate(monday.getDate() + day);
-
-        if (isMemberAvailable(member.id, currentDate, '09:00', '18:00')) {
-          availableDays++;
-        } else {
-          unavailableDays.push(dayNames[day]);
-        }
-      }
-
-      analysis.push({
-        member,
-        hasAvailability: true,
-        availableDays,
-        totalDaysChecked: 5,
-        canWork: availableDays > 0,
-        unavailableDays
-      });
-    });
-
-    return analysis;
-  };
 
   // Función para notificar a un miembro
   const notifyMember = (member: TeamMember) => {
@@ -513,7 +438,6 @@ export function ScheduleGenerator({ members: allMembers, offices, schedules, mem
   const membersWithoutOffice = members.filter(m => !m.officeId);
   const officesOverCapacity = officeStats.filter(s => s.needsRotation);
   const membersWithoutAvailability = getMembersWithoutAvailability();
-  const availabilityAnalysis = getAvailabilityAnalysis();
 
   return (
     <div className="space-y-6">
