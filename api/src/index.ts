@@ -26,7 +26,7 @@ const pool = new Pool({
 // Comprobar la conexión al iniciar
 pool.connect()
     .then(() => console.log('✅ Conectado a la Base de Datos PostgreSQL'))
-    .catch(err => console.error('❌ Error (Temporal):', err.message, '- Configura DATABASE_URL en .env para conectar.'));
+    .catch((err: any) => console.error('❌ Error (Temporal):', err.message, '- Configura DATABASE_URL en .env para conectar.'));
 
 // Utilidad de Encriptación de datos sensibles (Ejemplo: teléfonos de emergencia)
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'mi_clave_secreta_super_segura_32b'; // Debe ser 32 caracteres (256-bit)
@@ -68,7 +68,7 @@ app.get('/api/miembros', async (req, res) => {
         const { rows } = await pool.query('SELECT * FROM members ORDER BY created_at DESC');
 
         // Desencriptamos datos muy sensibles al enviar al panel de admin
-        const decryptedRows = rows.map(row => ({
+        const decryptedRows = rows.map((row: any) => ({
             ...row,
             emergencyContact: decryptData(row.emergency_contact)
         }));
