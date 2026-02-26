@@ -81,15 +81,15 @@ function App() {
       try {
         console.log("Fetching members from Render PostgreSQL API...");
         const apiMembers = await memberService.getAll();
-        // Si la BD devuelve vacio, tal vez cargamos los initialMembers por ahora de relleno
-        if (apiMembers && apiMembers.length > 0) {
+        // Assign whatever came back from the DB (empty array is fine!)
+        if (Array.isArray(apiMembers)) {
           setMembers(apiMembers);
         } else {
-          setMembers(initialMembers); // Fallback demo
+          setMembers([]);
         }
       } catch (error) {
         console.error("No se pudo conectar a la base de datos", error);
-        setMembers(initialMembers); // Fallback si falla
+        setMembers([]);
       }
     };
     loadRealData();
