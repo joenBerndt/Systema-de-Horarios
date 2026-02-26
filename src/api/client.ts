@@ -43,6 +43,24 @@ export const memberService = {
     })
 };
 
+export const officeService = {
+    getAll: () => apiFetch('/api/oficinas'),
+
+    create: (officeData: any) => apiFetch('/api/oficinas', {
+        method: 'POST',
+        body: JSON.stringify(officeData)
+    }),
+
+    update: (id: string, officeData: any) => apiFetch(`/api/oficinas/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(officeData)
+    }),
+
+    delete: (id: string) => apiFetch(`/api/oficinas/${id}`, {
+        method: 'DELETE'
+    })
+};
+
 export const authService = {
     // Verificar acceso real contra la base de datos
     login: (credentials: any) => apiFetch('/api/auth/login', {

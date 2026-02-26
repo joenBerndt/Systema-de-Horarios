@@ -18,14 +18,14 @@ import { MemberTeamView } from './components/MemberTeamView';
 import { MemberScheduleView } from './components/MemberScheduleView';
 import { MemberAvailability } from './components/MemberAvailability';
 import { TeamMember, Office, ScrumTeam, Schedule, DailyMeeting, User, Project, MemberAvailability as MemberAvailabilityType } from './types';
-import { initialMembers, initialOffices } from './data/initialData';
+
 import { initialUsers } from './data/initialUsers';
 import { Toaster } from './components/ui/sonner';
 import { AnimatePresence } from './components/ui/animated-container';
-import { LoadingOverlay } from './components/ui/loading';
+
 import { ConfirmationDialog } from './components/ui/confirmation-dialog';
 import { NotificationToast } from './components/ui/notification-toast';
-import { memberService } from '../api/client';
+import { memberService, officeService } from '../api/client';
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -74,27 +74,43 @@ function App() {
 
   // Application state
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
 
   // Real Database Fetching Effect
   useEffect(() => {
     const loadRealData = async () => {
       try {
-        console.log("Fetching members from Render PostgreSQL API...");
-        const apiMembers = await memberService.getAll();
-        // Assign whatever came back from the DB (empty array is fine!)
+        console.log("Fetching members and offices from Render PostgreSQL API...");
+        const [apiMembers, apiOffices] = await Promise.all([
+          memberService.getAll(),
+          officeService.getAll()
+        ]);
+
         if (Array.isArray(apiMembers)) {
           setMembers(apiMembers);
         } else {
           setMembers([]);
         }
+
+        if (Array.isArray(apiOffices)) {
+          // Calculamos de nuevo la ocupación basado en miembros asignados
+          const officesWithOccupancy = apiOffices.map((office: Office) => {
+            const currentOccupancy = Array.isArray(apiMembers) ? apiMembers.filter(m => m.officeId === office.id).length : 0;
+            return { ...office, currentOccupancy };
+          });
+          setOffices(officesWithOccupancy);
+        } else {
+          setOffices([]);
+        }
       } catch (error) {
         console.error("No se pudo conectar a la base de datos", error);
         setMembers([]);
+        setOffices([]);
       }
     };
     loadRealData();
   }, []);
-  const [offices, setOffices] = useLocalStorage<Office[]>('app_offices', initialOffices);
+
   const [teams, setTeams] = useLocalStorage<ScrumTeam[]>('app_teams', []);
   const [schedules, setSchedules] = useLocalStorage<Schedule[]>('app_schedules', []);
   const [dailies, setDailies] = useLocalStorage<DailyMeeting[]>('app_dailies', []);
@@ -290,28 +306,46 @@ function App() {
   };
 
   // Office handlers
-  const handleAddOffice = (officeData: Omit<Office, 'id' | 'currentOccupancy'>) => {
+  const handleAddOffice = async (officeData: Omit<Office, 'id' | 'currentOccupancy'>) => {
+    const tempId = crypto.randomUUID();
     const newOffice: Office = {
       ...officeData,
-      id: `office-${Date.now()}`,
+      id: tempId,
       currentOccupancy: 0
     };
     setOffices([...offices, newOffice]);
+
+    try {
+      const savedOffice = await officeService.create(officeData);
+      setOffices(prev => prev.map(o => o.id === tempId ? { ...savedOffice, currentOccupancy: 0 } : o));
+    } catch (err) {
+      console.error("Error creando oficina", err);
+    }
   };
 
-  const handleUpdateOffice = (id: string, officeData: Partial<Office>) => {
+  const handleUpdateOffice = async (id: string, officeData: Partial<Office>) => {
     setOffices(offices.map(o => o.id === id ? { ...o, ...officeData } : o));
+    try {
+      await officeService.update(id, officeData);
+    } catch (err) {
+      console.error("Error actualizando oficina", err);
+    }
   };
 
-  const handleDeleteOffice = (id: string) => {
+  const handleDeleteOffice = async (id: string) => {
     setOffices(offices.filter(o => o.id !== id));
     setMembers(members.map(m => m.officeId === id ? { ...m, officeId: undefined } : m));
+    try {
+      await officeService.delete(id);
+    } catch (err) {
+      console.error("Error eliminando oficina", err);
+    }
   };
 
   const updateOfficeOccupancy = (officeId: string, change: number) => {
-    setOffices(offices.map(o =>
+    setOffices(prevOffices => prevOffices.map(o =>
       o.id === officeId
-        ? { ...o, currentOccupancy: Math.max(0, o.currentOccupancy + change) }
+        ? { ...o, currentOccupancy: Math.max(0, (o.currentOccupancy || 0) + change) }
         : o
     ));
   };

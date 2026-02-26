@@ -158,6 +158,76 @@ app.delete('/api/miembros/:id', async (req, res) => {
 });
 
 
+// ---------------- OFICINAS ----------------
+
+// 1. Obtener Oficinas
+app.get('/api/oficinas', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT * FROM offices ORDER BY created_at DESC');
+        const mappedOffices = rows.map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            capacity: row.capacity,
+            currentOccupancy: 0, // El front end lo recalcula
+            address: row.address
+        }));
+        res.json(mappedOffices);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error del servidor al obtener oficinas' });
+    }
+});
+
+// 2. Crear Oficina
+app.post('/api/oficinas', async (req, res) => {
+    try {
+        const data = req.body;
+        const query = `
+          INSERT INTO offices (id, name, capacity, address, created_at)
+          VALUES ($1, $2, $3, $4, NOW())
+          RETURNING *;
+        `;
+        const values = [crypto.randomUUID(), data.name, data.capacity, data.address || ''];
+
+        const { rows } = await pool.query(query, values);
+        res.status(201).json({
+            id: rows[0].id,
+            name: rows[0].name,
+            capacity: rows[0].capacity,
+            currentOccupancy: 0,
+            address: rows[0].address
+        });
+    } catch (err: any) {
+        res.status(500).json({ error: 'Error al crear oficina', details: err.message });
+    }
+});
+
+// 3. Actualizar Oficina
+app.put('/api/oficinas/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        const query = `
+            UPDATE offices SET name = $1, capacity = $2, address = $3
+            WHERE id = $4 RETURNING *;
+        `;
+        const { rows } = await pool.query(query, [data.name, data.capacity, data.address || '', id]);
+        res.json(rows[0]);
+    } catch (err: any) {
+        res.status(500).json({ error: 'Error al actualizar oficina', details: err.message });
+    }
+});
+
+// 4. Eliminar Oficina
+app.delete('/api/oficinas/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM offices WHERE id = $1', [req.params.id]);
+        res.json({ message: "Oficina eliminada", success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al eliminar oficina' });
+    }
+});
+
 // ---------------- AUTENTICACIÓN LOCAL MOCK ----------------
 
 // Login verificando el Hash
