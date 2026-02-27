@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { TeamMember, Schedule, Office } from "../types";
@@ -16,8 +15,6 @@ interface MemberScheduleViewProps {
 }
 
 export function MemberScheduleView({ member, schedules, office }: MemberScheduleViewProps) {
-  const [selectedView, setSelectedView] = useState<'upcoming' | 'past'>('upcoming');
-
   const memberSchedules = schedules.filter(s => s.memberId === member.id);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -60,7 +57,7 @@ export function MemberScheduleView({ member, schedules, office }: MemberSchedule
     return scheduleDate.getTime() === tomorrow.getTime();
   };
 
-  const ScheduleCard = ({ schedule, index }: { schedule: Schedule; index: number }) => {
+  const ScheduleCard = ({ schedule }: { schedule: Schedule }) => {
     const isPresencial = schedule.workMode === 'presencial';
     const isTodaySchedule = isToday(schedule.date);
     const isTomorrowSchedule = isTomorrow(schedule.date);
@@ -230,7 +227,7 @@ export function MemberScheduleView({ member, schedules, office }: MemberSchedule
 
         {/* Tabs para ver próximos/pasados */}
         <AnimatedContainer delay={0.2}>
-          <Tabs defaultValue="upcoming" onValueChange={(value) => setSelectedView(value as 'upcoming' | 'past')}>
+          <Tabs defaultValue="upcoming">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upcoming">Próximos</TabsTrigger>
               <TabsTrigger value="past">Historial</TabsTrigger>
@@ -257,8 +254,8 @@ export function MemberScheduleView({ member, schedules, office }: MemberSchedule
                   </motion.div>
                 ) : (
                   <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {upcomingSchedules.map((schedule, index) => (
-                      <ScheduleCard key={schedule.id} schedule={schedule} index={index} />
+                    {upcomingSchedules.map((schedule) => (
+                      <ScheduleCard key={schedule.id} schedule={schedule} />
                     ))}
                   </StaggerContainer>
                 )}

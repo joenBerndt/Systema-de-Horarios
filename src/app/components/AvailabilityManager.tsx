@@ -4,9 +4,9 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { MemberAvailability, DayOfWeek, AvailabilityStatus } from "../types";
-import { Clock, Save, RotateCcw, MousePointer2 } from "lucide-react";
+import { Clock, Save, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { cn } from "./ui/utils";
 
 interface AvailabilityManagerProps {
@@ -126,7 +126,6 @@ export function AvailabilityManager({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasSeen = localStorage.getItem(tutorialKey) === 'true';
-      const hasSchedule = currentAvailability?.availability.some(day => day.isAvailable && day.timeRanges.length > 0) || false;
       if (!hasSeen) {
         setShowTutorial(true);
         setTutStep(1);

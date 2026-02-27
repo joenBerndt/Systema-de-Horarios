@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { TeamMember, Office } from "../types";
-import { User, Briefcase, Phone, MapPin, Calendar, Github, AlertCircle, CheckCircle2 } from "lucide-react";
+import { User, Briefcase, Phone, MapPin, Github, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Progress } from "./ui/progress";

@@ -76,20 +76,20 @@ function App() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
 
-  // Real Database Fetching Effect
+  // Real Database Fetching Effect with Auto-Refresh
   useEffect(() => {
+    let isMounted = true;
     const loadRealData = async () => {
       try {
-        console.log("Fetching members and offices from Render PostgreSQL API...");
         const [apiMembers, apiOffices] = await Promise.all([
           memberService.getAll(),
           officeService.getAll()
         ]);
 
+        if (!isMounted) return;
+
         if (Array.isArray(apiMembers)) {
           setMembers(apiMembers);
-        } else {
-          setMembers([]);
         }
 
         if (Array.isArray(apiOffices)) {
@@ -99,16 +99,25 @@ function App() {
             return { ...office, currentOccupancy };
           });
           setOffices(officesWithOccupancy);
-        } else {
-          setOffices([]);
         }
       } catch (error) {
-        console.error("No se pudo conectar a la base de datos", error);
-        setMembers([]);
-        setOffices([]);
+        console.error("No se pudo conectar a la base de datos. Tal vez el servidor gratuitó se esté despertando...", error);
+        // NO borramos la información existente mientras el backend revive (Evita parpadeos si entra en error/timeout temporalmente)
       }
     };
+
+    // Primera carga inmediata
     loadRealData();
+
+    // Configura actualización en tiempo real cada 10 segundos
+    const pollInterval = setInterval(() => {
+      loadRealData();
+    }, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const [teams, setTeams] = useLocalStorage<ScrumTeam[]>('app_teams', []);
@@ -688,7 +697,6 @@ function App() {
           <DailyCalendar
             dailies={dailies}
             teams={teams}
-            members={members}
             onAddDaily={handleAddDaily}
             onDeleteDaily={handleDeleteDaily}
           />

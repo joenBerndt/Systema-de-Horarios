@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Badge } from "./ui/badge";
-import { Plus, Search, Trash2, Edit, AlertCircle, Eye, Phone, Mail, Github, MapPin, Calendar as CalendarIcon, Briefcase } from "lucide-react";
+import { Plus, Search, Trash2, Edit, AlertCircle, Eye, Phone, Mail, Github, Calendar as CalendarIcon, Briefcase } from "lucide-react";
 import { TeamMember, RoleType, Office, EmploymentType, Specialty } from "../types";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";

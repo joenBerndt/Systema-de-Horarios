@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Shield, Users, Mail, User as UserIcon, Trash2, Edit, Plus } from "lucide-react";
+import { Shield, Mail, User as UserIcon, Trash2, Edit, Plus } from "lucide-react";
 import { User, UserRole } from "../types";
 import { Badge } from "./ui/badge";
 

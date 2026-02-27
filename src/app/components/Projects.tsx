@@ -7,7 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
-import { Plus, Search, Trash2, Edit, Eye, FolderKanban, Users as UsersIcon, Building2, Calendar, DollarSign } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Eye, FolderKanban, Users as UsersIcon, Building2, Calendar } from "lucide-react";
 import { Project, ProjectStatus, ProjectPriority, TeamMember, Office, ScrumTeam, User } from "../types";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
@@ -73,14 +73,6 @@ export function Projects({ projects, members, offices, teams, currentUser, onAdd
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
-
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesOffice = filterOffice === 'all' || project.officeId === filterOffice;
-    const matchesStatus = filterStatus === 'all' || project.status === filterStatus;
-    return matchesSearch && matchesOffice && matchesStatus;
-  });
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};

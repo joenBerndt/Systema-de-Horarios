@@ -6,18 +6,17 @@ import { Label } from "./ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Plus, Video, Clock, Users, Trash2 } from "lucide-react";
-import { DailyMeeting, ScrumTeam, TeamMember } from "../types";
+import { DailyMeeting, ScrumTeam } from "../types";
 import { Badge } from "./ui/badge";
 
 interface DailyCalendarProps {
   dailies: DailyMeeting[];
   teams: ScrumTeam[];
-  members: TeamMember[];
   onAddDaily: (daily: Omit<DailyMeeting, 'id'>) => void;
   onDeleteDaily: (id: string) => void;
 }
 
-export function DailyCalendar({ dailies, teams, members, onAddDaily, onDeleteDaily }: DailyCalendarProps) {
+export function DailyCalendar({ dailies, teams, onAddDaily, onDeleteDaily }: DailyCalendarProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     teamId: '',
@@ -88,7 +87,6 @@ export function DailyCalendar({ dailies, teams, members, onAddDaily, onDeleteDai
   };
 
   const getTeamById = (id: string) => teams.find(t => t.id === id);
-  const getMemberById = (id: string) => members.find(m => m.id === id);
 
   const generateWeeklyDailies = () => {
     const newDailies: Omit<DailyMeeting, 'id'>[] = [];
